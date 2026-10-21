@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fresh&Save - 新鮮な食材を、もっと身近に。</title>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="logo">
+        <i class="fa-solid fa-leaf"></i> Fresh&amp;Save
+      </div>
+      <button class="location-badge" id="location-btn">
+        <i class="fa-solid fa-location-dot"></i>
+        <span class="location-text" id="header-location-text">現在地を検出中...</span>
+        <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem;"></i>
+      </button>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- PAGE 1: HOME -->
+      <section id="page-home" class="page active">
+        <!-- Search Bar -->
+        <div class="search-bar-container" onclick="navTo('search')">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="食材・店舗・キーワードで検索" readonly>
+        </div>
+
+        <!-- Banner -->
+        <div class="banner-carousel">
+          <div class="banner-slide">
+            <h3>今が旬！<br>新鮮な食材をチェックしよう</h3>
+            <p style="font-size:0.8rem; margin-top:4px; opacity:0.9;">スーパーが毎日リアルタイム投稿中！</p>
+          </div>
+        </div>
+
+        <section class="home-area-card">
+          <div>
+            <p class="home-area-label"><i class="fa-solid fa-location-dot"></i> いつものお買い物エリア</p>
+            <p class="home-area-value" id="home-shopping-area">未設定</p>
+            <p class="home-area-subtitle" id="home-location-summary">住んでいる場所を登録すると、ここに表示されます。</p>
+            <p class="home-area-attribution"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">場所情報 © OpenStreetMap contributors</a></p>
+          </div>
+          <button type="button" onclick="openLocationModal()">設定</button>
+        </section>
+
+        <button type="button" class="home-list-shortcut" onclick="navTo('list')">
+          <span><i class="fa-solid fa-cart-shopping"></i> 買い物リストを確認</span>
+          <span id="home-cart-summary">リストを見る <i class="fa-solid fa-chevron-right"></i></span>
+        </button>
+
+        <!-- Recommendation Row -->
+        <div class="section-title">
+          <span>今週のおすすめ</span>
+          <span style="font-size: 0.8rem; color: var(--primary); cursor: pointer;" onclick="navTo('search')">すべて見る &gt;</span>
+        </div>
+        <div class="recommended-grid" id="home-recommendations">
+          <!-- JS injected -->
+        </div>
+        <p class="price-data-note">店舗別の参考価格はサンプルまたは利用者の入力情報です。</p>
+
+        <!-- Guide Banner Button -->
+        <div style="margin-top: 25px; background: #eef2ff; border: 1px dashed #6366f1; padding: 14px; border-radius: 12px; text-align: center; cursor: pointer;" onclick="openGuideModal()">
+          <p style="color: #4f46e5; font-weight: bold; font-size: 0.9rem; margin-bottom: 2px;">
+            <i class="fa-solid fa-circle-info"></i> このアプリの仕組みとメリットを見る
+          </p>
+          <p style="font-size: 0.75rem; color: #666;">新鮮さを伝える仕組み＆お得に買える理由</p>
+        </div>
+      </section>
+
+      <!-- PAGE 2: SEARCH & LIST -->
+      <section id="page-search" class="page">
+        <!-- Search Input -->
+        <div class="search-bar-container">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-input" placeholder="キャベツ、豚肉、スーパーAなど..." oninput="filterItems()">
+        </div>
+
+        <button type="button" class="nearby-store-open" onclick="openNearbyStoresModal()">
+          <span class="nearby-store-open-icon"><i class="fa-solid fa-store"></i></span>
+          <span class="nearby-store-open-copy">
+            <b>近くのスーパーを探す</b>
+            <small id="nearby-store-open-summary">店舗情報を読み込み中</small>
+          </span>
+          <i class="fa-solid fa-chevron-right nearby-store-open-arrow"></i>
+        </button>
+
+        <!-- Category Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="tab-btn active" onclick="filterCategory('all', this)">すべて</button>
+          <button class="tab-btn" onclick="filterCategory('野菜', this)">野菜</button>
+          <button class="tab-btn" onclick="filterCategory('お肉', this)">お肉</button>
+          <button class="tab-btn" onclick="filterCategory('鮮魚', this)">鮮魚</button>
+        </div>
+        <p class="recommendation-summary">価格と鮮度の目安を見て選べます。</p>
+        <details class="search-info-note">
+          <summary>価格・鮮度について</summary>
+          <p>価格はサンプルまたは入力情報です。店舗別の鮮度はデモ値です。実売価格・在庫・商品の状態は各店舗でご確認ください。</p>
+        </details>
+
+        <!-- Item List -->
+        <div class="item-list" id="search-item-list">
+          <!-- JS injected -->
+        </div>
+      </section>
+
+      <!-- PAGE 3: ITEM DETAIL -->
+      <section id="page-detail" class="page">
+        <button class="back-btn" onclick="navTo('search')"><i class="fa-solid fa-arrow-left"></i> 一覧に戻る</button>
+        
+        <div id="detail-content">
+          <!-- JS injected dynamically -->
+        </div>
+      </section>
+
+      <!-- PAGE 4: SHOPPING LIST & OPTIMIZATION -->
+      <section id="page-list" class="page">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+          <h2 style="font-size: 1.2rem; font-weight:700;">買い物リスト</h2>
+          <button style="background:var(--primary-light); color:var(--primary); border:none; padding:6px 12px; border-radius:20px; font-weight:bold; font-size:0.8rem;" onclick="clearCart()">リスト全消去</button>
+        </div>
+
+        <section class="repeat-items-section" id="frequent-items-section" hidden>
+          <div class="repeat-items-heading">
+            <div>
+              <h3><i class="fa-solid fa-rotate"></i> よく買うもの</h3>
+              <p>お気に入りからすぐに追加</p>
+            </div>
+            <button type="button" class="history-toggle" id="frequent-items-toggle" onclick="toggleFrequentItems()">もっと見る</button>
+          </div>
+          <div class="repeat-items-list" id="frequent-items-list"></div>
+        </section>
+
+        <section class="purchase-history-section" id="purchase-history-section" hidden>
+          <div class="purchase-history-heading">
+            <div>
+              <h3><i class="fa-solid fa-clock-rotate-left"></i> 購入履歴</h3>
+              <p>買った順に表示</p>
+            </div>
+            <button type="button" class="history-toggle" id="purchase-history-toggle" onclick="togglePurchaseHistory()">もっと見る</button>
+          </div>
+          <label class="purchase-history-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="purchase-history-search" type="search" aria-label="購入履歴から商品を検索" placeholder="履歴から商品を検索" oninput="renderPurchaseHistory()">
+          </label>
+          <div class="purchase-history-list" id="purchase-history-list"></div>
+        </section>
+
+        <form class="custom-item-form" onsubmit="addCustomItem(event)">
+          <label for="custom-item-name">買いたいものを追加</label>
+          <div class="custom-item-input-row">
+            <input id="custom-item-name" type="text" maxlength="60" placeholder="例：キャベツ、豚肉、牛乳" list="catalog-item-options" required>
+            <datalist id="catalog-item-options"></datalist>
+            <button type="submit" aria-label="買い物リストに追加">
+              <i class="fa-solid fa-plus"></i> 追加
+            </button>
+          </div>
+          <p class="custom-item-help">検索一覧の商品を追加すると、種類・近くの店舗価格と連携します。</p>
+        </form>
+
+        <div class="cart-progress" id="cart-progress" aria-live="polite"></div>
+        <div class="cart-view-filters" role="group" aria-label="買い物リストの表示">
+          <button type="button" class="cart-view-filter active" data-cart-filter="active" onclick="setCartFilter('active')">未購入</button>
+          <button type="button" class="cart-view-filter" data-cart-filter="all" onclick="setCartFilter('all')">すべて</button>
+          <button type="button" class="cart-view-filter" data-cart-filter="purchased" onclick="setCartFilter('purchased')">購入済み</button>
+        </div>
+        <div class="cart-search-input">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input id="cart-search-input" type="search" placeholder="リスト内の商品を検索" oninput="renderCartAndAIPlan()">
+        </div>
+
+        <div id="cart-item-list">
+          <!-- JS injected -->
+        </div>
+
+        <!-- AI Plan Result Card -->
+        <div class="ai-plan-card" id="ai-plan-box">
+          <div class="ai-plan-header">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 買い物プラン
+          </div>
+          <div id="ai-plan-content">
+            リストに商品を追加すると、「最安値優先」と「1店舗で買う」プランを選べます。
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 5: SUPERMARKET POSTS -->
+      <section id="page-posts" class="page">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+          <h2 style="font-size: 1.2rem; font-weight:700;">近くのスーパーの投稿</h2>
+          <span style="font-size:0.75rem; color:var(--text-light);">投稿内容はデモです</span>
+        </div>
+
+        <div id="posts-container">
+          <!-- JS Injected -->
+        </div>
+      </section>
+
+      <!-- PAGE 6: MY PAGE & AREA SETTINGS -->
+      <section id="page-mypage" class="page">
+        <h2 style="font-size: 1.2rem; font-weight:700; margin-bottom: 15px;">マイページ &amp; 位置情報設定</h2>
+
+        <div class="info-card">
+          <h3 style="font-size: 0.95rem; font-weight:bold; margin-bottom:10px;"><i class="fa-solid fa-location-dot" style="color:var(--primary);"></i> 現在の位置情報設定</h3>
+          <p style="font-size: 0.85rem; color: var(--text-dark);" id="mypage-location-info">設定中...</p>
+          <p class="saved-place-summary" id="mypage-place-info"></p>
+          <button class="btn btn-primary" style="margin-top:12px; font-size:0.85rem;" onclick="openLocationModal()">
+            <i class="fa-solid fa-arrows-rotate"></i> 位置情報・地域を変更する
+          </button>
+        </div>
+
+        <div class="info-card" style="margin-top: 15px;">
+          <h3 style="font-size: 0.95rem; font-weight:bold; margin-bottom:10px;"><i class="fa-solid fa-store" style="color:var(--primary);"></i> フォロー中のスーパー</h3>
+          <p style="font-size:0.85rem; color:var(--text-light);">・スーパーA（江東区豊洲店）<br>・スーパーB（墨田区錦糸町店）</p>
+        </div>
+
+        <div class="info-card" style="margin-top: 15px;">
+          <h3 style="font-size: 0.95rem; font-weight:bold; margin-bottom:10px;"><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> 位置情報の安全利用について</h3>
+          <p style="font-size:0.8rem; color:var(--text-light); line-height:1.5;">
+            当アプリは、最寄りのお買い得食材を検索する目的のみでお使いの端末のGPS機能（無料）を利用します。外部サーバーにユーザーの位置履歴が残ることはありません。
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" onclick="navTo('home')">
+        <i class="fa-solid fa-house"></i>
+        <span>ホーム</span>
+      </div>
+      <div class="nav-item" onclick="navTo('search')">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>検索・一覧</span>
+      </div>
+      <div class="nav-item" onclick="navTo('list')">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span>買い物リスト</span>
+        <span class="badge" id="cart-badge" style="display:none;">0</span>
+      </div>
+      <div class="nav-item" onclick="navTo('posts')">
+        <i class="fa-solid fa-store"></i>
+        <span>店舗投稿</span>
+      </div>
+      <div class="nav-item" onclick="navTo('mypage')">
+        <i class="fa-solid fa-user"></i>
+        <span>マイページ</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- MODAL: Location Setting (GPS or Manual) -->
+  <div class="modal-overlay" id="location-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-location-crosshairs" style="color:var(--primary);"></i> 現在地・買い物エリアの設定</h2>
+        <button class="modal-close" onclick="closeLocationModal()">&times;</button>
+      </div>
+
+      <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px; line-height:1.4;">
+        住んでいる場所と、近くのお店を探したいエリアを登録できます。買い物エリアを検索して候補から選ぶと、距離表示に反映されます。
+      </p>
+
+      <div class="place-input-group">
+        <label for="home-address-input">住んでいる場所（任意）</label>
+        <input id="home-address-input" type="text" maxlength="100" placeholder="例：東京都江東区豊洲">
+      </div>
+      <div class="place-input-group">
+        <label for="shopping-area-input">買い物エリア（検索地点）</label>
+        <div class="place-search-row">
+          <input id="shopping-area-input" type="text" maxlength="100" placeholder="例：埼玉県北本市、上尾駅周辺" oninput="invalidateShoppingAreaSearch()">
+          <button type="button" id="search-shopping-area-button" class="place-search-button" onclick="searchShoppingArea()">場所を検索</button>
+        </div>
+        <p id="place-search-status" class="place-search-status" role="status" aria-live="polite"></p>
+        <label class="place-result-label" for="place-search-results">検索結果から場所を選択</label>
+        <select id="place-search-results" disabled>
+          <option value="">先に買い物エリアを検索してください</option>
+        </select>
+      </div>
+
+      <!-- GPS Button -->
+      <button class="btn btn-primary" style="margin-bottom: 20px; font-size:0.95rem; padding:12px;" onclick="requestGPSLocation()">
+        <i class="fa-solid fa-location-arrow"></i> GPSで現在地を自動取得する（無料）
+      </button>
+
+      <p class="place-privacy-note">場所検索では買い物エリア欄の地名を、近くのスーパー検索では選んだ地点の座標をOpenStreetMapのNominatimに送信します。自宅住所欄は送信しません。番地などの個人情報は入力しないでください。検索結果の地図データ：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>（<a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer">検索サービスの利用条件</a>）。</p>
+      <button class="btn btn-secondary" id="save-shopping-area-button" onclick="saveManualArea()" disabled>選んだ場所を検索地点に設定</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Nearby Supermarket Filters -->
+  <div class="modal-overlay" id="nearby-stores-modal" onclick="if(event.target === this) closeNearbyStoresModal()">
+    <div class="modal-card nearby-stores-modal-card" role="dialog" aria-modal="true" aria-labelledby="nearby-stores-modal-title">
+      <div class="modal-header">
+        <h2 id="nearby-stores-modal-title"><i class="fa-solid fa-store" style="color:var(--primary);"></i> スーパーを絞り込む</h2>
+        <button class="modal-close" aria-label="閉じる" onclick="closeNearbyStoresModal()">&times;</button>
+      </div>
+      <p class="nearby-stores-modal-hint">範囲は商品一覧にも反映されます。</p>
+      <div class="radius-filter-bar nearby-stores-radius-filter" role="group" aria-label="スーパーと商品一覧の検索範囲">
+        <button class="radius-btn" data-radius="0.5" onclick="setSearchRadius(0.5)">500m以内</button>
+        <button class="radius-btn" data-radius="1" onclick="setSearchRadius(1)">1km以内</button>
+        <button class="radius-btn active" data-radius="3" onclick="setSearchRadius(3)">3km以内</button>
+        <button class="radius-btn" data-radius="999" onclick="setSearchRadius(999)">10km以内</button>
+      </div>
+      <label class="store-search-input nearby-store-modal-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="nearby-store-search" type="search" aria-label="スーパー名またはエリアで検索" placeholder="スーパー名・エリアで検索" oninput="renderNearbyStoreSummary()">
+      </label>
+      <section class="nearby-store-summary" id="nearby-store-summary" aria-live="polite">近隣スーパー情報をまだ読み込んでいません。</section>
+    </div>
+  </div>
+
+  <!-- MODAL: App Concept Guide -->
+  <div class="modal-overlay" id="guide-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Fresh&amp;Save の仕組みとメリット</h2>
+        <button class="modal-close" onclick="closeGuideModal()">&times;</button>
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--text-dark);">
+        <h4 style="color:var(--primary); font-size:0.95rem; margin-top:10px;">💡 新鮮さをどうやって伝えるの？</h4>
+        <p style="margin-top:4px; line-height:1.4;">
+          スーパーのスタッフが毎日入荷したての売り場写真を直接投稿！写真の撮影日時、産地・入荷時間、見た目の状態（ハリ・色・傷みの有無）をアプリ上で一目でチェックできます。
+        </p>
+
+        <h4 style="color:var(--primary); font-size:0.95rem; margin-top:14px;">🛍️ アプリを使う4つのメリット</h4>
+        <ul style="padding-left:18px; margin-top:4px; line-height:1.6;">
+          <li><b>安く買える：</b>店舗ごとの価格を比較して節約。</li>
+          <li><b>新鮮さがわかる：</b>入荷情報や写真で鮮度を確認。</li>
+          <li><b>手間が減る：</b>店を1つずつ回らず効率よく買い物。</li>
+          <li><b>安心して選べる：</b>根拠のある写真と入荷情報。</li>
+        </ul>
+
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="closeGuideModal()">理解しました！</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
