@@ -521,6 +521,7 @@ async function refreshNearbyStores(force = false) {
     renderCatalogItemOptions();
     renderHomeRecommendations();
     renderItemList();
+    renderPosts();
     renderCartAndAIPlan();
   } catch (error) {
     if (generation !== nearbyStoreSearchGeneration || locationKey !== getLocationCacheKey()) return;
@@ -605,21 +606,29 @@ function renderNearbyStoreSummary() {
   const container = document.getElementById('nearby-store-summary');
   if (!container) return;
   const searchInput = document.getElementById('nearby-store-search');
+  const openSummary = document.getElementById('nearby-store-open-summary');
   if (searchInput) searchInput.hidden = nearbyStores.length === 0;
+  document.querySelectorAll('.radius-btn').forEach(button => {
+    button.classList.toggle('active', Number(button.dataset.radius) === currentFilterRadius);
+  });
 
   if (nearbyStoreSearchStatus === 'loading') {
+    if (openSummary) openSummary.textContent = '近くの店舗を検索しています';
     container.innerHTML = '近くのスーパーを地図から検索しています…';
     return;
   }
   if (nearbyStoreSearchStatus === 'error') {
+    if (openSummary) openSummary.textContent = '検索できませんでした。タップして再試行';
     container.innerHTML = `近くのスーパーを検索できませんでした。通信を確認して再試行してください。<br><button type="button" onclick="refreshNearbyStores(true)">再試行</button>`;
     return;
   }
   if (nearbyStoreSearchStatus === 'idle') {
+    if (openSummary) openSummary.textContent = '近くのスーパーを検索';
     container.innerHTML = `近隣スーパー情報をまだ読み込んでいません（最大${NEARBY_STORES_SEARCH_RADIUS_KM}km）。<button type="button" onclick="refreshNearbyStores(true)">近くのスーパーを検索</button>`;
     return;
   }
   if (nearbyStores.length === 0) {
+    if (openSummary) openSummary.textContent = 'このエリアの店舗情報はありません';
     container.innerHTML = `この地点のスーパー情報はまだ見つかっていません。地図に未登録の店舗がある場合もあります。<br><button type="button" onclick="refreshNearbyStores(true)">再検索</button>`;
     return;
   }
@@ -632,6 +641,7 @@ function renderNearbyStoreSummary() {
   const closest = sortedStores[0];
   const rangeLabel = currentFilterRadius === 999 ? `${NEARBY_STORES_SEARCH_RADIUS_KM}km以内` : `${currentFilterRadius}km以内`;
   if (!withinRadius.length) {
+    if (openSummary) openSummary.textContent = `この範囲に店舗なし・最寄り${closest.distKm}km`;
     container.innerHTML = `検索地点から${rangeLabel}にスーパーが見つかりません。最寄りは「${escapeHTML(closest.store.name)}」（${closest.distKm}km）です。<br><small>地図データのため、未登録の店舗がある場合があります。</small><br><button type="button" onclick="refreshNearbyStores(true)">再検索</button>`;
     return;
   }
@@ -649,12 +659,17 @@ function renderNearbyStoreSummary() {
   const groupCards = groupsToRender.map(renderStoreBrandCard).join('');
   const hasMoreGroups = !query && filteredGroups.length > 5;
   const visibleStoreCount = filteredGroups.reduce((count, group) => count + group.branches.length, 0);
+  if (openSummary) {
+    openSummary.textContent = query
+      ? `${visibleStoreCount}店舗・${rangeLabel}`
+      : `${withinRadius.length}店舗・${rangeLabel}`;
+  }
   container.innerHTML = `
     <div class="store-search-summary"><b>${rangeLabel}・${visibleStoreCount}店舗</b><span>${filteredGroups.length}系列</span></div>
-    <small class="store-branch-note">系列ごとにまとめています。支店を選ぶと価格比較に反映されます。</small>
+    <small class="store-branch-note">支店を選ぶと価格比較に反映されます。</small>
     <div class="store-brand-list">${groupCards || '<p class="store-search-empty">検索に一致する店舗がありません。</p>'}</div>
     ${hasMoreGroups ? `<details class="nearby-store-details"><summary>ほか${filteredGroups.length - 5}系列を表示</summary><div class="store-brand-list">${filteredGroups.slice(5).map(renderStoreBrandCard).join('')}</div></details>` : ''}
-    <small>店舗情報：OpenStreetMap。地図に未登録の店舗がある場合があります。</small>
+    <small>店舗地図情報：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a></small>
     <button type="button" onclick="refreshNearbyStores(true)">近くのスーパーを更新</button>
   `;
 }
@@ -1210,13 +1225,16 @@ function updateHomeCartSummary(itemCount) {
   }
 }
 
-function setSearchRadius(radiusKm, btnElem) {
+function setSearchRadius(radiusKm) {
   currentFilterRadius = radiusKm;
-  document.querySelectorAll('.radius-btn').forEach(b => b.classList.remove('active'));
-  if (btnElem) btnElem.classList.add('active');
+  document.querySelectorAll('.radius-btn').forEach(button => {
+    const buttonRadius = Number(button.dataset.radius);
+    button.classList.toggle('active', buttonRadius === radiusKm);
+  });
   updateHeaderLocationDisplay();
   renderNearbyStoreSummary();
   renderItemList();
+  renderPosts();
 }
 
 function refreshAllViews() {
@@ -1909,7 +1927,7 @@ function renderCartAndAIPlan() {
     <p class="plan-price-note">${purchasePlanMode === 'choose'
       ? '各商品の「購入するスーパー」から選んでください。選択は保存されます。'
       : purchasePlanMode === 'single'
-        ? '下の「まとめるスーパー」で選ぶと、すべての商品をその店で買う想定に切り替わります。'
+        ? '選んだスーパーの距離・商品別価格・合計目安を表示します。'
         : '価格のおすすめを表示中です。行く店舗は「商品ごとに選ぶ」から変更できます。'
     } 価格はサンプルまたは入力情報です。</p>
     <p class="plan-note">鮮度デモは仮データです。実際の商品の状態は店頭でご確認ください。</p>
@@ -1928,27 +1946,51 @@ function renderCartAndAIPlan() {
     }));
     const selectedStoreTotal = selectedStoreItems.reduce((sum, entry) => sum + entry.price * entry.quantity, 0);
     const { distKm, walkMin } = getStoreDistance(selectedStore.id);
-    const nearbySingleStoreChoices = getAllStores().filter(store =>
-      Number(getStoreDistance(store.id).distKm) <= getActiveDistanceRadius()
-    );
+    const nearbySingleStoreChoices = getAllStores()
+      .filter(store => Number(getStoreDistance(store.id).distKm) <= getActiveDistanceRadius())
+      .sort((a, b) =>
+        calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng) -
+        calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng)
+      );
     const singleStoreChoices = nearbySingleStoreChoices.length ? nearbySingleStoreChoices : getAllStores();
     const optionsHTML = singleStoreChoices.map(store => `
-      <option value="${store.id}" ${store.id === selectedStore.id ? 'selected' : ''}>${escapeHTML(store.name)}・${escapeHTML(getStoreAddressLabel(store))}</option>
+      <option value="${store.id}" ${store.id === selectedStore.id ? 'selected' : ''}>${escapeHTML(store.name)}・${escapeHTML(getStoreAddressLabel(store))}・${getStoreDistance(store.id).distKm}km</option>
     `).join('');
     const knownItemsHTML = selectedStoreItems.length
-      ? `<li>${selectedStoreItems.map(({ item, price, quantity }) => `${escapeHTML(item.name)} × ${quantity}（￥${price * quantity}）`).join('</li><li>')}</li>`
+      ? selectedStoreItems.map(({ item, price, quantity }) => `
+        <li>
+          <span>${escapeHTML(item.name)} <small>× ${quantity}</small></span>
+          <b>￥${price * quantity}</b>
+        </li>
+      `).join('')
       : '<li>この店舗で価格が登録された商品はありません。</li>';
 
     aiPlanBox.innerHTML = `
       ${planControls}
-      <label class="single-store-select-label" for="single-store-select">まとめるスーパーを選択</label>
-      <select id="single-store-select" class="single-store-select" onchange="setSingleStore(this.value)">${optionsHTML}</select>
-      <p class="single-store-summary">「${escapeHTML(selectedStore.name)}」1店舗で揃える場合の見積もりです。商品ごとの価格が未登録ならサンプル価格を含みます。</p>
-      <div class="plan-details">
-        <p><b>この店舗での合計目安：￥${selectedStoreTotal}</b></p>
-        <p class="plan-walk-distance">現在地から徒歩${walkMin}分（約${distKm}km）</p>
-        <p class="plan-confirmed-title">この店舗で買う商品</p>
-        <ul>${knownItemsHTML}</ul>
+      <section class="single-store-picker-card" aria-label="まとめ買いするスーパー">
+        <div class="single-store-picker-heading">
+          <span class="single-store-icon"><i class="fa-solid fa-store"></i></span>
+          <div>
+            <b>まとめ買いするスーパー</b>
+            <small>1店舗で揃える場合の価格を確認できます</small>
+          </div>
+        </div>
+        <div class="single-store-current">
+          <b>${escapeHTML(selectedStore.name)}</b>
+          <span>${escapeHTML(getStoreAddressLabel(selectedStore))}</span>
+          <span class="single-store-distance"><i class="fa-solid fa-person-walking"></i> 徒歩${walkMin}分・${distKm}km</span>
+        </div>
+        <label class="single-store-select-label" for="single-store-select">スーパーを変更</label>
+        <select id="single-store-select" class="single-store-select" onchange="setSingleStore(this.value)">${optionsHTML}</select>
+      </section>
+      <div class="single-store-estimate">
+        <div class="single-store-total">
+          <span>この店舗で買う場合の合計目安</span>
+          <b>￥${selectedStoreTotal}</b>
+        </div>
+        <p class="single-store-summary">価格未登録の商品はサンプル価格で計算しています。実際の価格・在庫は店頭でご確認ください。</p>
+        <div class="plan-confirmed-title">買うもの <span>${selectedStoreItems.length}点</span></div>
+        <ul class="single-store-item-list">${knownItemsHTML}</ul>
       </div>
     ` + (customItems.some(item => !item.catalogItemId)
       ? '<p class="plan-note">検索一覧にない手入力の商品は、店舗・価格情報がありません。</p>'
@@ -2151,6 +2193,18 @@ function renderPosts() {
 function openLocationModal() {
   loadLocationForm();
   document.getElementById('location-modal').classList.add('active');
+}
+
+function openNearbyStoresModal() {
+  const modal = document.getElementById('nearby-stores-modal');
+  modal.classList.add('active');
+  document.getElementById('nearby-store-search')?.focus();
+  if (nearbyStoreSearchStatus === 'idle') refreshNearbyStores(true);
+}
+
+function closeNearbyStoresModal() {
+  document.getElementById('nearby-stores-modal').classList.remove('active');
+  document.querySelector('.nearby-store-open')?.focus();
 }
 
 function closeLocationModal() {

@@ -90,19 +90,14 @@
           <input type="text" id="search-input" placeholder="キャベツ、豚肉、スーパーAなど..." oninput="filterItems()">
         </div>
 
-        <!-- Filter Radius Buttons -->
-        <div class="radius-filter-bar">
-          <span style="font-size: 0.8rem; color: var(--text-light); margin-right: 4px;">距離:</span>
-          <button class="radius-btn" onclick="setSearchRadius(0.5, this)">500m以内</button>
-          <button class="radius-btn" onclick="setSearchRadius(1.0, this)">1km以内</button>
-          <button class="radius-btn active" onclick="setSearchRadius(3.0, this)">3km以内</button>
-          <button class="radius-btn" onclick="setSearchRadius(999, this)">10km以内</button>
-        </div>
-        <label class="store-search-input">
-          <i class="fa-solid fa-store" aria-hidden="true"></i>
-          <input id="nearby-store-search" type="search" aria-label="スーパー名またはエリアで検索" placeholder="スーパー名・エリアで検索" oninput="renderNearbyStoreSummary()">
-        </label>
-        <section class="nearby-store-summary" id="nearby-store-summary" aria-live="polite">近隣スーパー情報をまだ読み込んでいません。</section>
+        <button type="button" class="nearby-store-open" onclick="openNearbyStoresModal()">
+          <span class="nearby-store-open-icon"><i class="fa-solid fa-store"></i></span>
+          <span class="nearby-store-open-copy">
+            <b>近くのスーパーを探す</b>
+            <small id="nearby-store-open-summary">店舗情報を読み込み中</small>
+          </span>
+          <i class="fa-solid fa-chevron-right nearby-store-open-arrow"></i>
+        </button>
 
         <!-- Category Filter Tabs -->
         <div class="filter-tabs">
@@ -111,8 +106,11 @@
           <button class="tab-btn" onclick="filterCategory('お肉', this)">お肉</button>
           <button class="tab-btn" onclick="filterCategory('鮮魚', this)">鮮魚</button>
         </div>
-        <p class="recommendation-summary">価格・鮮度のおすすめを表示します。商品詳細の店舗別鮮度は画面確認用のデモ値で、実際の店舗情報ではありません。</p>
-        <p class="price-data-note">価格はサンプルまたは入力情報です。店舗の場所はOpenStreetMapの地図情報を使用します。実売価格・在庫は各店舗でご確認ください。</p>
+        <p class="recommendation-summary">価格と鮮度の目安を見て選べます。</p>
+        <details class="search-info-note">
+          <summary>価格・鮮度について</summary>
+          <p>価格はサンプルまたは入力情報です。店舗別の鮮度はデモ値です。実売価格・在庫・商品の状態は各店舗でご確認ください。</p>
+        </details>
 
         <!-- Item List -->
         <div class="item-list" id="search-item-list">
@@ -302,6 +300,28 @@
 
       <p class="place-privacy-note">場所検索では買い物エリア欄の地名を、近くのスーパー検索では選んだ地点の座標をOpenStreetMapのNominatimに送信します。自宅住所欄は送信しません。番地などの個人情報は入力しないでください。検索結果の地図データ：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>（<a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer">検索サービスの利用条件</a>）。</p>
       <button class="btn btn-secondary" id="save-shopping-area-button" onclick="saveManualArea()" disabled>選んだ場所を検索地点に設定</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Nearby Supermarket Filters -->
+  <div class="modal-overlay" id="nearby-stores-modal" onclick="if(event.target === this) closeNearbyStoresModal()">
+    <div class="modal-card nearby-stores-modal-card" role="dialog" aria-modal="true" aria-labelledby="nearby-stores-modal-title">
+      <div class="modal-header">
+        <h2 id="nearby-stores-modal-title"><i class="fa-solid fa-store" style="color:var(--primary);"></i> スーパーを絞り込む</h2>
+        <button class="modal-close" aria-label="閉じる" onclick="closeNearbyStoresModal()">&times;</button>
+      </div>
+      <p class="nearby-stores-modal-hint">範囲は商品一覧にも反映されます。</p>
+      <div class="radius-filter-bar nearby-stores-radius-filter" role="group" aria-label="スーパーと商品一覧の検索範囲">
+        <button class="radius-btn" data-radius="0.5" onclick="setSearchRadius(0.5)">500m以内</button>
+        <button class="radius-btn" data-radius="1" onclick="setSearchRadius(1)">1km以内</button>
+        <button class="radius-btn active" data-radius="3" onclick="setSearchRadius(3)">3km以内</button>
+        <button class="radius-btn" data-radius="999" onclick="setSearchRadius(999)">10km以内</button>
+      </div>
+      <label class="store-search-input nearby-store-modal-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="nearby-store-search" type="search" aria-label="スーパー名またはエリアで検索" placeholder="スーパー名・エリアで検索" oninput="renderNearbyStoreSummary()">
+      </label>
+      <section class="nearby-store-summary" id="nearby-store-summary" aria-live="polite">近隣スーパー情報をまだ読み込んでいません。</section>
     </div>
   </div>
 
